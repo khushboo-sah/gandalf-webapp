@@ -1,7 +1,5 @@
 
 
----
-
 ```markdown
 # Gandalf Web App
 
@@ -21,10 +19,14 @@ The app uses Python 3 and the Flask framework. Gandalf’s image is stored in th
 ```
 
 gandalf-webapp/
-├── app.py             # Main Flask application code
-├── requirement.txt    # Python dependencies
-└── static/
-└── gandalf.jpg    # Gandalf image
+
+1. app.py             # Main Flask application code
+2. requirements.txt   # Python dependencies
+3. Dockerfile         # Dockerfile to containerize the app
+4. README.md          # This README
+5. static/
+   └── gandalf.jpg    # Gandalf image
+6. venv/              # Optional: local Python virtual environment
 
 ````
 
@@ -33,6 +35,7 @@ gandalf-webapp/
 ## Step 1: Download the Code
 
 1. Clone the repository:
+
 ```bash
 git clone <your-repo-url>
 cd gandalf-webapp
@@ -41,8 +44,10 @@ cd gandalf-webapp
 2. Ensure the following files exist:
 
 * `app.py`
-* `requirement.txt`
+* `requirements.txt`
 * `static/gandalf.jpg`
+* `Dockerfile`
+* `README.md`
 
 ---
 
@@ -60,7 +65,8 @@ python3 --version
 python3 -m venv venv
 ```
 
-> We recommend using a virtual environment (venv) to keep all project dependencies isolated from other Python projects and avoid conflicts.
+> **Why virtual environment (venv)?**
+> It keeps all project dependencies isolated from other Python projects and avoids conflicts.
 
 3. Activate the virtual environment:
 
@@ -77,60 +83,112 @@ venv\Scripts\activate      # Windows
 
 ```bash
 python3 -m pip install --upgrade pip
-python3 -m pip install -r requirement.txt
+python3 -m pip install -r requirements.txt
 ```
 
-> Make sure the file name is exactly `requirement.txt`.
+> Make sure the file name is exactly `requirements.txt`.
 
 ---
 
-## Step 4: Run the Flask App
+## Step 4: Run the Flask App Locally
 
 ```bash
 python3 app.py
 ```
 
-**Note:** The Flask app is set to run on **port 80**. On Mac/Linux, using ports below 1024 may require **root permissions**.
-If you get a permission error, run:
-
-```bash
-sudo python3 app.py
-```
-
 You should see something like:
 
 ```
+ * Serving Flask app 'app'
+ * Debug mode: off
+WARNING: This is a development server. Do not use it in a production deployment.
  * Running on all addresses (0.0.0.0)
- * Running on http://127.0.0.1:80
- * Running on http://192.168.0.16:80
+ * Running on http://127.0.0.1:8080
+ * Running on http://192.168.0.16:8080
 ```
 
 ---
 
 ## Step 5: Test the Application
 
-Open your browser or use `curl` to test:
+Open your browser or use `curl`:
 
 * Gandalf image:
 
 ```bash
-http://127.0.0.1:80/gandalf
+http://127.0.0.1:8080/gandalf
 ```
 
 * Colombo time:
 
 ```bash
-http://127.0.0.1:80/colombo
+http://127.0.0.1:8080/colombo
 ```
 
 * Prometheus metrics:
 
 ```bash
-http://127.0.0.1:80/metrics
+http://127.0.0.1:8080/metrics
 ```
 
 ---
 
+## Step 6: Dockerize the Application
 
+Your Dockerfile is configured as follows:
 
+```dockerfile
+FROM python:3.12-slim-bookworm AS base
 
+WORKDIR /usr/src/app
+
+# Copy and install dependencies
+COPY requirements.txt ./
+RUN pip install --upgrade pip
+RUN pip install -r requirements.txt
+
+# Copy app code and static folder
+COPY . .
+
+# Expose the internal Flask port
+EXPOSE 8080
+
+# Run the Flask app
+ENTRYPOINT ["python", "app.py"]
+```
+
+Build and run the container:
+
+```bash
+docker build -t gandalf-webapp:1.0 .
+sudo docker run -d -p 80:8080 gandalf-webapp:1.0
+```
+
+### Explanation:
+
+* **Internal Flask port:** 8080 (inside container)
+* **External port:** 80 (host/public), satisfies assignment requirement “only port 80 should be open”
+* Browser and Prometheus can access the app using port 80.
+
+Explanation:
+
+The container itself does not have a public IP.
+
+Your host machine’s IP (127.0.0.1 or 192.168.x.x) is what you can use to access it from your laptop.
+
+This is fine for local testing only.
+
+Check running containers:
+
+```bash
+docker ps
+```
+
+You should see something like:
+
+```
+CONTAINER ID   IMAGE                 COMMAND        STATUS     PORTS
+8cb653912f8f   gandalf-webapp:1.0   "python app.py"  Up 5s   0.0.0.0:80->8080/tcp
+```
+
+---

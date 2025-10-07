@@ -11,7 +11,7 @@ RUN pip install -r requirements.txt
 COPY . .
 
 # Set environment variable for port (optional)
-ENV APP_PORT 80
+ENV APP_PORT 8080
 
 # Run the Flask app
 ENTRYPOINT ["python", "app.py"]
