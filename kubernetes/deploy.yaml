@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: gandalf-webapp
-          image: in30minthing/gandalf-webapp:0.1
+          image: in30minthing/gandalf-webapp:1.0
           imagePullPolicy: IfNotPresent
           ports:
-            - containerPort: 80
+            - containerPort: 8080
